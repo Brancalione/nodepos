@@ -8,18 +8,31 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-//https://posdesweb.igormaldonado.com.br/api/allowedCategory?category=moda
+Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require('fs/promises');
-//const axios = require('axios');
 const path = require('path');
+const categoryService_1 = require("./Services/categoryService");
 function validarCategoriasProds() {
     return __awaiter(this, void 0, void 0, function* () {
         const produtosCaminho = path.join(__dirname, '../produtcts.json');
         const produtosData = yield fs.readFile(produtosCaminho, 'utf-8');
         const produtos = JSON.parse(produtosData);
-        return produtos;
+        const listaPermitida = [];
+        yield Promise.all(produtos.map((produto) => __awaiter(this, void 0, void 0, function* () {
+            const permitido = yield (0, categoryService_1.CategoryAllowed)(produto.category);
+            if (permitido) {
+                listaPermitida.push({
+                    id: produto.id,
+                    name: produto.name
+                });
+            }
+        })));
+        // Define o caminho até a raiz do projeto
+        const caminhoArquivo = path.resolve(__dirname, '..', 'processed.json');
+        // Converte a lista para uma string JSON
+        const jsonString = JSON.stringify(listaPermitida, null, 2); // o `2` deixa o arquivo formatadinho
+        // Escreve o arquivo
+        fs.writeFile(caminhoArquivo, jsonString, 'utf-8');
     });
 }
-validarCategoriasProds().then(produtos => {
-    console.log(produtos);
-});
+validarCategoriasProds();
