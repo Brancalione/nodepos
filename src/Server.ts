@@ -1,5 +1,6 @@
 import Fastify, { FastifyInstance, FastifyServerOptions } from 'fastify'
 import productRoutes from './Routes/products'
+import fastifyMultipart from '@fastify/multipart'
 
 const server: FastifyInstance = Fastify({ logger: true })
 server.get('/', async (request, reply) => {
@@ -8,6 +9,7 @@ server.get('/', async (request, reply) => {
     }
 })
 
+server.register(fastifyMultipart)
 server.register(productRoutes)
 
 export const start = async () => {

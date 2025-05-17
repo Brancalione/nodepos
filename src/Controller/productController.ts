@@ -1,5 +1,8 @@
 const path = require('path');
-const fs = require('fs/promises');
+const fs = require('fs');
+import { pipeline } from "stream";
+import { promisify } from "util";
+const pump = promisify(pipeline);
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProdutoPermitido } from '../Interface/types';
@@ -75,6 +78,37 @@ export const updateProduct = async (request: FastifyRequest, reply: FastifyReply
 
 
 }
+
+export const updateImageProduct = async (request: FastifyRequest, reply: FastifyReply) => {
+    const params = request.params as { id: string };
+    var produtos = await readProducts();
+    const produtoEncontrado = produtos.findIndex(p => p.id === params.id);
+
+    // Verificar se o produto existe
+    if (produtoEncontrado === -1) {
+        reply.code(404).send({ error: "Item não encontrado" })
+        return;
+    }
+
+    const date: any = await request.file();
+    
+    const produtosCaminho = path.join(__dirname, 'Img' , date.filename);
+
+    try {
+        await new Promise((resolve, reject) => {
+            const writeStream = fs.createWriteStream(produtosCaminho);
+            date.file.pipe(writeStream);
+            date.file.on('end', resolve);
+            date.file.on('error', reject);
+        });
+
+        return reply.code(204).send("Update product");
+    } catch (err) {
+        console.error("Erro ao salvar a imagem:", err);
+        return reply.code(500).send({ error: "Erro ao salvar a imagem" });
+    }
+}
+
  
 export const deleteProductById = async (request: FastifyRequest, reply: FastifyReply) => {
     const params = request.params as { id: string };
