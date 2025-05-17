@@ -19,6 +19,6 @@ export const start = async () => {
     } catch (err) {
         server.log.error(err);
         process.exit(1)
-    } 
+    }
 };
 

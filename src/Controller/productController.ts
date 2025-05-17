@@ -1,8 +1,6 @@
 const path = require('path');
 const fs = require('fs/promises');
-import { pipeline } from "stream";
-import { promisify } from "util";
-const pump = promisify(pipeline);
+const fsImage = require('fs');
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProdutoPermitido } from '../Interface/types';
@@ -26,14 +24,14 @@ export const getProductById = async (request: FastifyRequest, reply: FastifyRepl
 }
 
 export const postNewProduct = async (request: FastifyRequest, reply: FastifyReply) => {
-    const newProduct: ProdutoPermitido =  request.body as ProdutoPermitido 
+    const newProduct: ProdutoPermitido = request.body as ProdutoPermitido
 
     if (!newProduct.name || !newProduct.pictureUrl) {
         reply.code(400).send({ error: "Body inválido" })
-        return 
+        return
     }
 
-    const produtos = await readProducts() 
+    const produtos = await readProducts()
     var newId: number = 1
 
     while (produtos.find(p => p.id == newId.toString())) {
@@ -63,7 +61,7 @@ export const updateProduct = async (request: FastifyRequest, reply: FastifyReply
         return;
     }
 
-    const newProduct: ProdutoPermitido =  request.body as ProdutoPermitido 
+    const newProduct: ProdutoPermitido = request.body as ProdutoPermitido
 
     const updateProduct: ProdutoPermitido = {
         id: params.id,
@@ -71,7 +69,7 @@ export const updateProduct = async (request: FastifyRequest, reply: FastifyReply
         pictureUrl: newProduct.pictureUrl
     }
 
-    produtos[produtoEncontrado] = updateProduct 
+    produtos[produtoEncontrado] = updateProduct
 
     await writeProducts(produtos)
     return reply.code(204).send("Update product")
@@ -91,12 +89,23 @@ export const updateImageProduct = async (request: FastifyRequest, reply: Fastify
     }
 
     const date: any = await request.file();
-    
-    const produtosCaminho = path.join(__dirname, 'Img' , date.filename);
 
+    //Verifica se é uma imagem
+    const extension = path.extname(date.filename);
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+
+    if (!imageExtensions.includes(extension)) {
+        reply.code(400).send({ error: "Imagem inválida" })
+        return;
+    }
+
+    //Renomeia a imagem para respeitar o ID
+    const produtosCaminho = path.join(__dirname, '../Img', params.id + extension);
+
+    //Tenta salvar a imagem
     try {
         await new Promise((resolve, reject) => {
-            const writeStream = fs.createWriteStream(produtosCaminho);
+            const writeStream = fsImage.createWriteStream(produtosCaminho);
             date.file.pipe(writeStream);
             date.file.on('end', resolve);
             date.file.on('error', reject);
@@ -109,7 +118,7 @@ export const updateImageProduct = async (request: FastifyRequest, reply: Fastify
     }
 }
 
- 
+
 export const deleteProductById = async (request: FastifyRequest, reply: FastifyReply) => {
     const params = request.params as { id: string };
     var produtos = await readProducts();
