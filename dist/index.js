@@ -8,14 +8,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require('fs/promises');
 const path = require('path');
 const categoryService_1 = require("./Services/categoryService");
-const fastify_1 = __importDefault(require("fastify"));
+// import Fastify, {FastifyInstance, FastifyServerOptions } from 'fastify'
+const Server_1 = require("./Server");
 function validarCategoriasProds() {
     return __awaiter(this, void 0, void 0, function* () {
         const produtosCaminho = path.join(__dirname, '../produtcts.json');
@@ -40,20 +38,19 @@ function validarCategoriasProds() {
     });
 }
 validarCategoriasProds();
-const server = (0, fastify_1.default)({ logger: true });
-server.get('/', (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
-    return {
-        hello: "word"
-    };
-}));
-const start = () => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield server.listen({ port: 3003 });
-        server.log.info(`Server listening at ${server.server.address()}`);
-    }
-    catch (err) {
-        server.log.error(err);
-        process.exit(1);
-    }
-});
-start();
+// const server: FastifyInstance = Fastify ({logger: true })
+// server.get('/', async(request, reply) => {
+//     return{
+//         hello: "word"
+//     }
+// })
+// const start = async () => {
+//     try {
+//         await server.listen({port: 3003});
+//         server.log.info(`Server listening at ${server.server.address()}`);
+//     } catch (err) {
+//         server.log.error(err);
+//         process.exit(1)
+//     }
+// };
+(0, Server_1.start)();

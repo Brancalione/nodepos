@@ -2,7 +2,8 @@ const fs = require('fs/promises');
 const path = require('path');
 import { CategoryAllowed } from './Services/categoryService';
 import { Produto, ProdutoPermitido } from './Interface/types';
-import Fastify, {FastifyInstance, FastifyServerOptions } from 'fastify'
+// import Fastify, {FastifyInstance, FastifyServerOptions } from 'fastify'
+import { start } from './Server'
 
 async function validarCategoriasProds() {
     const produtosCaminho = path.join(__dirname, '../produtcts.json');
@@ -11,6 +12,7 @@ async function validarCategoriasProds() {
 
     const listaPermitida: ProdutoPermitido[] = [];
 
+    
     await Promise.all(produtos.map(async (produto) => {
         const permitido = await CategoryAllowed(produto.category);
         if (permitido) {
@@ -32,22 +34,5 @@ async function validarCategoriasProds() {
 }
 
 validarCategoriasProds();
-
-const server: FastifyInstance = Fastify ({logger: true })
-server.get('/', async(request, reply) => {
-    return{
-        hello: "word"
-    }
-})
-
-const start = async () => {
-    try {
-        await server.listen({port: 3003});
-        server.log.info(`Server listening at ${server.server.address()}`);
-    } catch (err) {
-        server.log.error(err);
-        process.exit(1)
-    }
-};
 
 start();
