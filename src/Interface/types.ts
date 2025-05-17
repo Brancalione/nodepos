@@ -10,4 +10,5 @@ export interface Produto {
 export interface ProdutoPermitido {
     id: string;
     name: string;
+    pictureUrl: string;
 }

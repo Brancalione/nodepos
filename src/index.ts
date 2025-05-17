@@ -12,13 +12,14 @@ async function validarCategoriasProds() {
 
     const listaPermitida: ProdutoPermitido[] = [];
 
-    
+
     await Promise.all(produtos.map(async (produto) => {
         const permitido = await CategoryAllowed(produto.category);
         if (permitido) {
             listaPermitida.push({
                 id: produto.id,
-                name: produto.name
+                name: produto.name,
+                pictureUrl: produto.pictureUrl
             });
         }
     }));
