@@ -10,7 +10,6 @@ async function validarCategoriasProds() {
 
     const listaPermitida: ProdutoPermitido[] = [];
 
-    
     await Promise.all(produtos.map(async (produto) => {
         const permitido = await CategoryAllowed(produto.category);
         if (permitido) {
