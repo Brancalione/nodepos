@@ -1,5 +1,5 @@
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs/promises');
 import { pipeline } from "stream";
 import { promisify } from "util";
 const pump = promisify(pipeline);
