@@ -9,4 +9,4 @@ export default async function productRoutes(server: FastifyInstance) {
     server.put <{ Body: ProdutoPermitido }> ('/products/:id', productController.updateProduct)
     //server.put('/products/:id', productController.getAllProduts)
     server.delete('/products/:id', productController.deleteProductById)
-}
+} 

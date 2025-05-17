@@ -75,7 +75,7 @@ export const updateProduct = async (request: FastifyRequest, reply: FastifyReply
 
 
 }
-
+ 
 export const deleteProductById = async (request: FastifyRequest, reply: FastifyReply) => {
     const params = request.params as { id: string };
     var produtos = await readProducts();

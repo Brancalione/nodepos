@@ -6,9 +6,9 @@ export interface Produto {
     category: string;
     pictureUrl: string;
   }
-
+ 
 export interface ProdutoPermitido {
     id?: string;
     name: string;
     pictureUrl: string;
-}
+} 
