@@ -3,14 +3,23 @@ const fs = require('fs/promises');
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProdutoPermitido } from '../Interface/types';
+import { NOTFOUND } from 'dns';
 
 export const getAllProduts = async (request: FastifyRequest, reply: FastifyReply) => {
-    readProducts();
+    return readProducts();
 }
 
 export const getProductsById = async (request: FastifyRequest, reply: FastifyReply) => {
-    request.params as { id: string };
-    readProducts();
+    const params = request.params as { id: string };
+    const produtoEncontrado = readProducts(params.id);
+
+    // Verificar se o id existe
+    if (!produtoEncontrado) {
+        reply.code(404).send({ error: "Item não encontrado" })
+        return;
+    }
+
+    return produtoEncontrado;
 }
 
 const readProducts = async (id?: string) => {
@@ -22,7 +31,6 @@ const readProducts = async (id?: string) => {
         return produtos;
     }
 
-    // Verificar se o id existe
     var produtoEncontrado: ProdutoPermitido = produtos.filter(p => p.id === id)[0];
-    console.log(produtoEncontrado);
+    return produtoEncontrado;
 }
