@@ -25,7 +25,8 @@ function validarCategoriasProds() {
             if (permitido) {
                 listaPermitida.push({
                     id: produto.id,
-                    name: produto.name
+                    name: produto.name,
+                    pictureUrl: produto.pictureUrl
                 });
             }
         })));
@@ -38,19 +39,4 @@ function validarCategoriasProds() {
     });
 }
 validarCategoriasProds();
-// const server: FastifyInstance = Fastify ({logger: true })
-// server.get('/', async(request, reply) => {
-//     return{
-//         hello: "word"
-//     }
-// })
-// const start = async () => {
-//     try {
-//         await server.listen({port: 3003});
-//         server.log.info(`Server listening at ${server.server.address()}`);
-//     } catch (err) {
-//         server.log.error(err);
-//         process.exit(1)
-//     }
-// };
 (0, Server_1.start)();

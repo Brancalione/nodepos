@@ -4,7 +4,7 @@ const fs = require('fs/promises');
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProdutoPermitido } from '../Interface/types';
 
-export const getAllProduts = async (request: FastifyRequest, reply: FastifyReply) => {
+export const getAllProduts = async () => {
     return readProducts();
 }
 
@@ -23,13 +23,14 @@ export const getProductById = async (request: FastifyRequest, reply: FastifyRepl
 }
 
 export const postNewProduct = async (request: FastifyRequest, reply: FastifyReply) => {
-    const { name, pictureUrl } = request.body as Omit<ProdutoPermitido, 'id'>;
+    const newProduct: ProdutoPermitido =  request.body as ProdutoPermitido 
 
-    if (!name || pictureUrl) {
+    if (!newProduct.name || !newProduct.pictureUrl) {
         reply.code(400).send({ error: "Body inválido" })
+        return 
     }
 
-    const produtos = await readProducts() as ProdutoPermitido[]
+    const produtos = await readProducts() 
     var newId: number = 1
 
     while (produtos.find(p => p.id == newId.toString())) {
@@ -38,8 +39,8 @@ export const postNewProduct = async (request: FastifyRequest, reply: FastifyRepl
 
     const novoProduto: ProdutoPermitido = {
         id: newId.toString(),
-        name: name,
-        pictureUrl: pictureUrl
+        name: newProduct.name,
+        pictureUrl: newProduct.pictureUrl
     }
 
     produtos.push(novoProduto)
@@ -49,6 +50,29 @@ export const postNewProduct = async (request: FastifyRequest, reply: FastifyRepl
 }
 
 export const updateProduct = async (request: FastifyRequest, reply: FastifyReply) => {
+    const params = request.params as { id: string };
+    var produtos = await readProducts();
+    const produtoEncontrado = produtos.findIndex(p => p.id === params.id);
+
+    // Verificar se o produto existe
+    if (produtoEncontrado === -1) {
+        reply.code(404).send({ error: "Item não encontrado" })
+        return;
+    }
+
+    const newProduct: ProdutoPermitido =  request.body as ProdutoPermitido 
+
+    const updateProduct: ProdutoPermitido = {
+        id: params.id,
+        name: newProduct.name,
+        pictureUrl: newProduct.pictureUrl
+    }
+
+    produtos[produtoEncontrado] = updateProduct 
+
+    await writeProducts(produtos)
+    return reply.code(204).send("Update product")
+
 
 }
 
@@ -58,12 +82,12 @@ export const deleteProductById = async (request: FastifyRequest, reply: FastifyR
     const produtoEncontrado = produtos.findIndex(p => p.id === params.id);
 
     // Verificar se o produto existe
-    if (produtoEncontrado < 0) {
+    if (produtoEncontrado === -1) {
         reply.code(404).send({ error: "Item não encontrado" })
         return;
     }
 
-    produtos = produtos.splice(produtoEncontrado, 1);
+    produtos.splice(produtoEncontrado, 1);
     await writeProducts(produtos)
     return reply.code(204).send();
 }

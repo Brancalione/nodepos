@@ -8,7 +8,7 @@ export interface Produto {
   }
 
 export interface ProdutoPermitido {
-    id: string;
+    id?: string;
     name: string;
     pictureUrl: string;
 }

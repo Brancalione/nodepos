@@ -14,10 +14,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.start = void 0;
 const fastify_1 = __importDefault(require("fastify"));
+const products_1 = __importDefault(require("./Routes/products"));
 const server = (0, fastify_1.default)({ logger: true });
+server.get('/', (request, reply) => __awaiter(void 0, void 0, void 0, function* () {
+    return {
+        hello: "word"
+    };
+}));
+server.register(products_1.default);
 const start = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield server.listen({ port: 3000 });
+        yield server.listen({ port: 3003 });
         server.log.info(`Server listening at ${server.server.address()}`);
     }
     catch (err) {
