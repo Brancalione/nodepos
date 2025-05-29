@@ -4,6 +4,7 @@ import { CategoryAllowed } from './Services/categoryService';
 import { Produto, ProdutoPermitido } from './Interface/types';
 // import Fastify, {FastifyInstance, FastifyServerOptions } from 'fastify'
 import { start } from './Server'
+
  
 async function validarCategoriasProds() {
     const produtosCaminho = path.join(__dirname, '../produtcts.json');
