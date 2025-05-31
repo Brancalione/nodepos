@@ -13,6 +13,8 @@ async function validarCategoriasProds() {
     const produtos = await databaseService.retornaProdutos()
     const listaPermitida: ProdutoPermitido[] = [];
 
+    console.log('Cheguei')
+
     await Promise.all((produtos as Produto[]).map(async (produto) => {
         const permitido = await CategoryAllowed(produto.category);
         if (permitido) {
@@ -31,7 +33,10 @@ async function validarCategoriasProds() {
     const jsonString = JSON.stringify(listaPermitida, null, 2); // o `2` deixa o arquivo formatadinho
 
     // Escreve o arquivo
-    fs.writeFile(caminhoArquivo, jsonString, 'utf-8');
+    await fs.writeFile(caminhoArquivo, jsonString, 'utf-8');
+
+    // Escrever lista no banco
+    await databaseService.atualizaProcessed(listaPermitida)
 
     const teste = await databaseService.retornaProcessed()
     console.log(teste)
