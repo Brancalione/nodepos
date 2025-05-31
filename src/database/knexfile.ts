@@ -1,23 +1,23 @@
-const knex = require('knex');
+import type { Knex } from 'knex';
 
-const db = knex({
+const config: { [key: string]: Knex.Config } = {
+  development: {
     client: 'pg',
     connection: {
-        host:'127.0.0.1',
-        port: 5432,
-        user: 'postgres',
-        password: 'admin',
-        database: 'meu_banco',
-        searchPath: ['public']
+      host: '127.0.0.1',
+      port: 5432,
+      user: 'postgres',
+      password: 'admin',
+      database: 'meu_banco',
     },
-    pool: {
-        min: 2,
-        max: 10
-    },
+    searchPath: ['public'], // <-- MOVIDO PARA CÁ
     migrations: {
-        directory: '/migrations'
+      directory: './migrations',
     },
     seeds: {
-        directory: './seeds'
-    }
-});
+      directory: '/seeds',
+    },
+  },
+};
+
+module.exports = config;
