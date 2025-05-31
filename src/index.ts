@@ -7,7 +7,7 @@ import { start } from './Server'
 
  
 async function validarCategoriasProds() {
-    const produtosCaminho = path.join(__dirname, '../produtcts.json');
+    const produtosCaminho = path.join(__dirname, '../products.json');
     const produtosData = await fs.readFile(produtosCaminho, 'utf-8');
     const produtos: Produto[] = JSON.parse(produtosData);
 
