@@ -4,17 +4,16 @@ import { CategoryAllowed } from './Services/categoryService';
 import { Produto, ProdutoPermitido } from './Interface/types';
 // import Fastify, {FastifyInstance, FastifyServerOptions } from 'fastify'
 import { start } from './Server'
-import knex, { Knex } from 'knex';
-const config = require ('./database/knexfile')
+import * as databaseService from './database/databaseService'
  
 async function validarCategoriasProds() {
-    const produtosCaminho = path.join(__dirname, '../products.json');
-    const produtosData = await fs.readFile(produtosCaminho, 'utf-8');
-    const produtos: Produto[] = JSON.parse(produtosData);
-
+    //const produtosCaminho = path.join(__dirname, '../products.json');
+    //const produtosData = await fs.readFile(produtosCaminho, 'utf-8');
+    //const produtos: Produto[] = JSON.parse(produtosData);
+    const produtos = await databaseService.retornaProdutos()
     const listaPermitida: ProdutoPermitido[] = [];
 
-    await Promise.all(produtos.map(async (produto) => {
+    await Promise.all((produtos as Produto[]).map(async (produto) => {
         const permitido = await CategoryAllowed(produto.category);
         if (permitido) {
             listaPermitida.push({
@@ -33,24 +32,11 @@ async function validarCategoriasProds() {
 
     // Escreve o arquivo
     fs.writeFile(caminhoArquivo, jsonString, 'utf-8');
+
+    const teste = await databaseService.retornaProcessed()
+    console.log(teste)
 }
 
-async function testaDB(){
-    const db = knex(config.development)
-
-    try {
-        const produtos = await db('produtos').select('*');
-        console.log('Entrei')
-        await db.destroy()
-        return produtos;
-    } catch (error) {
-        console.log(error)
-        await db.destroy()
-        return;
-    }
-}
-
+//main()
 validarCategoriasProds();
-testaDB()
-
 start();
