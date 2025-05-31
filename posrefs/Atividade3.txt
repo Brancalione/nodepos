@@ -1,0 +1,3 @@
+1. Definição de tabela para Produto utilizando schema builder e criar 1ra migração:
+2. Implementar a adição inicial dos produtos iniciais via Seeds
+3. Inserir a persistência com banco nos endpoints desenvolvidos com Fastify

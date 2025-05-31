@@ -4,7 +4,8 @@ import { CategoryAllowed } from './Services/categoryService';
 import { Produto, ProdutoPermitido } from './Interface/types';
 // import Fastify, {FastifyInstance, FastifyServerOptions } from 'fastify'
 import { start } from './Server'
-
+import knex, { Knex } from 'knex';
+const config = require ('./database/knexfile')
  
 async function validarCategoriasProds() {
     const produtosCaminho = path.join(__dirname, '../products.json');
@@ -34,6 +35,22 @@ async function validarCategoriasProds() {
     fs.writeFile(caminhoArquivo, jsonString, 'utf-8');
 }
 
+async function testaDB(){
+    const db = knex(config.development)
+
+    try {
+        const produtos = await db('produtos').select('*');
+        console.log('Entrei')
+        await db.destroy()
+        return produtos;
+    } catch (error) {
+        console.log(error)
+        await db.destroy()
+        return;
+    }
+}
+
 validarCategoriasProds();
+testaDB()
 
 start();
