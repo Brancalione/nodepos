@@ -1,4 +1,4 @@
-const knex = require('kenx');
+const knex = require('knex');
 
 const db = knex({
     client: 'pg',
@@ -8,29 +8,16 @@ const db = knex({
         user: 'postgres',
         password: 'admin',
         database: 'meu_banco',
-        serchPath: ['public'],
-        ssl: process.env.DB_SSL ? { rejectUnathorized: false } : false
+        searchPath: ['public']
     },
     pool: {
         min: 2,
-        mas: 10
+        max: 10
+    },
+    migrations: {
+        directory: '/migrations'
+    },
+    seeds: {
+        directory: './seeds'
     }
 });
-
-module.exports = {
-    development: {
-        client: 'pg',
-        connection: {
-            host: '127.0.0.1',
-            user: 'postgres',
-            password: 'admin',
-            database: 'meu_banco',
-        },
-        migrations: {
-            directory: './migrations'
-        },
-        seeds: {
-            directory: './seeds'
-        }
-    }
-}
