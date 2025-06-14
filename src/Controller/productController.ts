@@ -1,152 +1,110 @@
 const path = require('path');
 const fs = require('fs/promises');
-const fsImage = require('fs');
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProdutoPermitido } from '../Interface/types';
+import * as databaseService from '../database/databaseService';
 
 export const getAllProduts = async () => {
-    return readProducts();
-}
+  return await databaseService.retornaProcessed();
+};
 
 export const getProductById = async (request: FastifyRequest, reply: FastifyReply) => {
-    const params = request.params as { id: string };
-    const produtos = await readProducts();
-    const produtoEncontrado = produtos.find(p => p.id === params.id);
+  const { id } = request.params as { id: string };
+  const produto = await databaseService.buscaProdutoPorId(id.toString());
+  console.log(produto);
+  if (!produto) {
+    return reply.code(404).send({ error: 'Item não encontrado' });
+  }
 
-    // Verificar se o produto existe
-    if (!produtoEncontrado) {
-        reply.code(404).send({ error: "Item não encontrado" })
-        return;
-    }
-
-    return produtoEncontrado;
-}
+  return produto;
+};
 
 export const postNewProduct = async (request: FastifyRequest, reply: FastifyReply) => {
-    const newProduct: ProdutoPermitido = request.body as ProdutoPermitido
+  const newProduct = request.body as Omit<ProdutoPermitido, 'id'>;
 
-    if (!newProduct.name || !newProduct.pictureUrl) {
-        reply.code(400).send({ error: "Body inválido" })
-        return
-    }
+  if (!newProduct.name || !newProduct.pictureUrl) {
+    return reply.code(400).send({ error: 'Body inválido' });
+  }
 
-    const produtos = await readProducts()
-    var newId: number = 1
+  // Busca o maior ID atual na tabela processed
+  const produtos = await databaseService.retornaProcessed();
+  const existingIds = produtos.map(p => parseInt(p.id, 10));
+  
+  // Obtém o próximo ID a ser usado, garantindo que seja único
+  let newId = existingIds.length > 0 ? Math.max(...existingIds) + 1 : 1;
 
-    while (produtos.find(p => p.id == newId.toString())) {
-        newId++
-    }
+  const novoProduto: ProdutoPermitido = {
+    id: newId.toString(),
+    name: newProduct.name,
+    pictureUrl: newProduct.pictureUrl,
+  };
 
-    const novoProduto: ProdutoPermitido = {
-        id: newId.toString(),
-        name: newProduct.name,
-        pictureUrl: newProduct.pictureUrl
-    }
-
-    produtos.push(novoProduto)
-    await writeProducts(produtos)
-
+  try {
+    await databaseService.insereProduto(novoProduto);
     return reply.status(201).send(novoProduto);
-}
+  } catch (error) {
+    console.error('Erro ao inserir produto:', error);
+    return reply.code(500).send({ error: 'Erro ao inserir produto' });
+  }
+};
 
 export const updateProduct = async (request: FastifyRequest, reply: FastifyReply) => {
-    const params = request.params as { id: string };
-    var produtos = await readProducts();
-    const produtoEncontrado = produtos.findIndex(p => p.id === params.id);
+  const { id } = request.params as { id: string };
+  const body = request.body as Omit<ProdutoPermitido, 'id'>;
 
-    // Verificar se o produto existe
-    if (produtoEncontrado === -1) {
-        reply.code(404).send({ error: "Item não encontrado" })
-        return;
-    }
+  const produto = await databaseService.buscaProdutoPorId(id);
+  if (!produto) {
+    return reply.code(404).send({ error: 'Item não encontrado' });
+  }
 
-    const newProduct: ProdutoPermitido = request.body as ProdutoPermitido
+  await databaseService.atualizaProduto({ id, name: body.name, pictureUrl: body.pictureUrl });
 
-    const updateProduct: ProdutoPermitido = {
-        id: params.id,
-        name: newProduct.name,
-        pictureUrl: newProduct.pictureUrl
-    }
-
-    produtos[produtoEncontrado] = updateProduct
-
-    await writeProducts(produtos)
-    return reply.code(204).send("Update product")
-
-
-}
+  return reply.code(204).send('Produto atualizado');
+};
 
 export const updateImageProduct = async (request: FastifyRequest, reply: FastifyReply) => {
-    const params = request.params as { id: string };
-    var produtos = await readProducts();
-    const produtoEncontrado = produtos.findIndex(p => p.id === params.id);
+  const { id } = request.params as { id: string };
+  const produto = await databaseService.buscaProdutoPorId(id);
 
-    // Verificar se o produto existe
-    if (produtoEncontrado === -1) {
-        reply.code(404).send({ error: "Item não encontrado" })
-        return;
-    }
+  if (!produto) {
+    return reply.code(404).send({ error: 'Item não encontrado' });
+  }
 
-    const date: any = await request.file();
+  const data: any = await request.file();
 
-    //Verifica se é uma imagem
-    const extension = path.extname(date.filename);
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
+  const extension = path.extname(data.filename).toLowerCase();
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
 
-    if (!imageExtensions.includes(extension)) {
-        reply.code(400).send({ error: "Imagem inválida" })
-        return;
-    }
+  if (!imageExtensions.includes(extension)) {
+    return reply.code(400).send({ error: 'Imagem inválida' });
+  }
 
-    //Renomeia a imagem para respeitar o ID
-    const produtosCaminho = path.join(__dirname, '../Img', params.id + extension);
+  const caminhoImagem = path.join(__dirname, '../Img', `${id}${extension}`);
 
-    //Tenta salvar a imagem
-    try {
-        await new Promise((resolve, reject) => {
-            const writeStream = fsImage.createWriteStream(produtosCaminho);
-            date.file.pipe(writeStream);
-            date.file.on('end', resolve);
-            date.file.on('error', reject);
-        });
+  try {
+    await new Promise((resolve, reject) => {
+      const stream = fs.createWriteStream(caminhoImagem);
+      data.file.pipe(stream);
+      data.file.on('end', resolve);
+      data.file.on('error', reject);
+    });
 
-        return reply.code(204).send("Update product");
-    } catch (err) {
-        console.error("Erro ao salvar a imagem:", err);
-        return reply.code(500).send({ error: "Erro ao salvar a imagem" });
-    }
-}
-
+    return reply.code(204).send('Imagem atualizada');
+  } catch (err) {
+    console.error('Erro ao salvar imagem:', err);
+    return reply.code(500).send({ error: 'Erro ao salvar imagem' });
+  }
+};
 
 export const deleteProductById = async (request: FastifyRequest, reply: FastifyReply) => {
-    const params = request.params as { id: string };
-    var produtos = await readProducts();
-    const produtoEncontrado = produtos.findIndex(p => p.id === params.id);
+  const { id } = request.params as { id: string };
 
-    // Verificar se o produto existe
-    if (produtoEncontrado === -1) {
-        reply.code(404).send({ error: "Item não encontrado" })
-        return;
-    }
+  const produto = await databaseService.buscaProdutoPorId(id);
+  if (!produto) {
+    return reply.code(404).send({ error: 'Item não encontrado' });
+  }
 
-    produtos.splice(produtoEncontrado, 1);
-    await writeProducts(produtos)
-    return reply.code(204).send();
-}
-
-//Funções Auxiliares
-const readProducts = async () => {
-    const produtosCaminho = path.join(__dirname, '../processed.json');
-    const produtosData = await fs.readFile(produtosCaminho, 'utf-8');
-    const produtos: ProdutoPermitido[] = JSON.parse(produtosData);
-
-    return produtos
-}
-
-const writeProducts = async (produtos: ProdutoPermitido[]) => {
-    const produtosCaminho = path.join(__dirname, '../processed.json');
-    const jsonString = JSON.stringify(produtos, null, 2); // o `2` deixa o arquivo formatadinho
-
-    fs.writeFile(produtosCaminho, jsonString, 'utf-8');;
-}
+  await databaseService.removeProdutoPorId(id);
+  return reply.code(204).send();
+};
