@@ -4,6 +4,8 @@ const fs = require('fs/promises');
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ProdutoPermitido } from '../Interface/types';
 import * as databaseService from '../database/databaseService';
+import JwtService from '../Autenticat/generateToken'; // ajuste o caminho se estiver em outro lugar
+
 
 export const getAllProduts = async () => {
   return await databaseService.retornaProcessed();
@@ -107,4 +109,19 @@ export const deleteProductById = async (request: FastifyRequest, reply: FastifyR
 
   await databaseService.removeProdutoPorId(id);
   return reply.code(204).send();
+};
+
+export const getNewTokenJWT = async (request: FastifyRequest, reply: FastifyReply) => {
+  const jwtService = new JwtService();
+
+  const payload = {
+    userId: 123,
+    email: 'usuario@teste.com',
+    role: 'user',
+    permissions: ['read', 'write']
+  };
+
+  const token = jwtService.generateToken(payload);
+
+  return reply.send({ token });
 };

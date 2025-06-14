@@ -4,6 +4,7 @@ import { CategoryAllowed } from './Services/categoryService';
 import { Produto, ProdutoPermitido } from './Interface/types';
 import { start } from './Server';
 import * as databaseService from './database/databaseService';
+import 'dotenv/config';
 
 async function validarCategoriasProds() {
   // Busca produtos do banco

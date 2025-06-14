@@ -12,7 +12,7 @@ services:
       POSTGRES_DB: meu_banco
     volumes:
       - postgis_storage:/var/lib/postgresql
-    restart: always
+    restart: no
 
 volumes:
   postgis_storage:
