@@ -14,7 +14,6 @@ export const getAllProduts = async () => {
 export const getProductById = async (request: FastifyRequest, reply: FastifyReply) => {
   const { id } = request.params as { id: string };
   const produto = await databaseService.buscaProdutoPorId(id.toString());
-  console.log(produto);
   if (!produto) {
     return reply.code(404).send({ error: 'Item não encontrado' });
   }

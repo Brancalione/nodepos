@@ -9,7 +9,7 @@ interface JwtPayload {
 
 class JwtService {
   private secret: string;
-  private expiresIn: string;
+  private expiresIn: any;
 
   constructor() {
     this.secret = process.env.JWT_SECRET!;
